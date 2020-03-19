@@ -2,120 +2,86 @@
 
 import argparse
 import shutil
+import sys
 import os
 
 class CONST(object):
-	VERSION = "0.1"
+	VERSION = "0.3"
 
 #  ---  ---  ---  ---  ---  #
 
-def POSIX_Backup(Src, Dest):
-	BACKUP_N = 0
+def POSIX_Backup(arg):
+	Src  = arg.s
+	Dest = arg.d
 	
-	BACKUP_DIR = "/BACKUP_" + str(BACKUP_N)
-	FULL_BACKUP_DIR = Dest + "/BACKUP_" + str(BACKUP_N)
+	if not arg.l: 
+		BACKUPn = 0
 	
-	while True:
-		FULL_BACKUP_DIR = Dest + "/BACKUP_" + str(BACKUP_N)
-				
-		if os.path.exists(FULL_BACKUP_DIR):
-			BACKUP_N = BACKUP_N + 1
-					
-		else:
-			print("Backup into: " + FULL_BACKUP_DIR)
-			shutil.copytree(Src, FULL_BACKUP_DIR)
-					
-			break
-	
-	else:
-		print("Backup into: " + FULL_BACKUP_DIR)
-		shutil.copytree(Src, FULL_BACKUP_DIR)
-	
-	print("Backuping complete... ")
-				
-	return 0;
+		while True:
+			BACKUP_DIR = "BACKUP_" + str(BACKUPn)
+			FULL_BACKUP_PATH = Dest + "/BACKUP_" + str(BACKUPn)
 
+			if os.path.exists(FULL_BACKUP_PATH):
+				BACKUPn += 1
+			
+			else:
+				print("Backup-Tool: Info: Backup into " + str(BACKUP_DIR))
+				shutil.copytree(Src, FULL_BACKUP_PATH)
+				
+				break;
+			
+		print("Backup-Tool: Info: Backuping complete... ")
 
-def NT_BACKUP():
-	BACKUP_N = 0
-	
-	BACKUP_DIR = "\BACKUP_" + str(BACKUP_N)
-	FULL_BACKUP_DIR = Dest + "\BACKUP_" + str(BACKUP_N)
-	
-	while True:
-		FULL_BACKUP_DIR = Dest + "\BACKUP_" + str(BACKUP_N)
-				
-		if os.path.exists(FULL_BACKUP_DIR):
-			BACKUP_N = BACKUP_N + 1
-					
+	else:		
+		BACKUP_DIR = arg.l
+		BACKUP_FULL_PATH = Dest + "/" + BACKUP_DIR
+
+		if os.path.exists(BACKUP_FULL_PATH):
+			print("Backup-Tool: Error: Dest path is exists")
+			
 		else:
-			print("Backup into: " + FULL_BACKUP_DIR)
-			shutil.copytree(Src, FULL_BACKUP_DIR)
-					
-			break
-	
-	else:
-		print("Backup into: " + FULL_BACKUP_DIR)
-		shutil.copytree(Src, FULL_BACKUP_DIR)
-	
-	print("Backuping complete... ")
+			print("Backup-Tool: Info: Backup into " + str(BACKUP_DIR))
+			shutil.copytree(Src, BACKUP_FULL_PATH)
 				
-	return 0;
-	
+#def NT_BACKUP(arg):
 	
 #  ---  ---  ---  ---  ---  #
 
-def Backup(Src, Dest):
+def Backup(arg):
 	OS_NAME = os.name
 
 	if OS_NAME == 'posix':
-		POSIX_Backup(Src, Dest)
+		POSIX_Backup(arg)
 	
 	elif OS_NAME == 'nt':
-		NT_Backup(Src, Dest)
+		NT_Backup(arg)
 	
 	else:
 		print("Backup-Tool not supported your OS")
 
 #  ---  ---  ---  ---  ---  #
 
-def Interactive_Main():
-	print(" --- Backup Tool " + CONST.VERSION + " --- ")
+def Main(arg):
+	if os.path.exists(arg.s) and os.path.exists(arg.d):
+		Backup(arg)
 	
-	Path      = input("Enter the full path of the directory to backup: ")
-	BackupDir = input("Enter the full path of the dest directory: ")
-	
-	if os.path.exists(Path) and os.path.exists(BackupDir) == True:
-		
-		Answer = input("Backup files? [y/n]: ")
-		if Answer.lower() == "y":
-			Backup(Path, BackupDir)
-			
 	else:
-		print("Error: Directory not found")
-	
-	return 0
-
-
-def Main(Src, Dest):
-	if os.path.exists(Src) and os.path.exists(Dest) == True:
-		Backup(Src, Dest)
-	else:
-		print("Path not found")
-	
-	return 0
+		print("Backup-tool: Error: Src or Dest directories not found")
 
 #  ---  ---  ---  ---  ---  #
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description="Backup-Tool" + CONST.VERSION)
+	parser = argparse.ArgumentParser(description="Backup-Tool " + CONST.VERSION)
 	
-	parser.add_argument("-s", default="None", type=str, help="Source path")
-	parser.add_argument("-d", default="None", type=str, help="Dest path")
-	
+	parser.add_argument("-s", default=None, type=str, help="Source path")
+	parser.add_argument("-d", default=None, type=str, help="Dest path")
+	parser.add_argument("-l", default=None, type=str, help="Label")
+
 	arg = parser.parse_args()
-	
-	if arg.s == "None" or arg.d == "None":
-		Interactive_Main()
+
+	if not arg.s or not arg.d:
+		print("Backup-tool: Error: Src or Dest directories not found")
+		sys.exit()
+
 	else:
-		Main(arg.s, arg.d)
+		Main(arg)
